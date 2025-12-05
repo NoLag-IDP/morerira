@@ -1,0 +1,301 @@
+-- Realistic Terminal-style Private Server Sender (Executor-friendly)
+-- Paste into an executor LocalScript (parents to CoreGui)
+
+if game:GetService("CoreGui"):FindFirstChild("PS_Terminal_GUI") then
+    game:GetService("CoreGui").PS_Terminal_GUI:Destroy()
+end
+
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local gui = Instance.new("ScreenGui")
+gui.Name = "PS_Terminal_GUI"
+gui.ResetOnSpawn = false
+gui.Parent = CoreGui
+gui.IgnoreGuiInset = true
+
+-- Styling
+local WINDOW_W, WINDOW_H = 640, 420
+local PADDING = 12
+
+-- Main window
+local window = Instance.new("Frame", gui)
+window.Name = "Window"
+window.Size = UDim2.fromOffset(WINDOW_W, WINDOW_H)
+window.Position = UDim2.new(0.5, -WINDOW_W/2, 0.5, -WINDOW_H/2)
+window.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+window.BorderSizePixel = 0
+window.ClipsDescendants = true
+local windowCorner = Instance.new("UICorner", window)
+windowCorner.CornerRadius = UDim.new(0, 8)
+
+-- Title bar (drag)
+local titleBar = Instance.new("Frame", window)
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 36)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
+local titleCorner = Instance.new("UICorner", titleBar)
+titleCorner.CornerRadius = UDim.new(0, 8)
+
+local titleLabel = Instance.new("TextLabel", titleBar)
+titleLabel.Size = UDim2.new(1, -100, 1, 0)
+titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "PS Terminal"
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 16
+titleLabel.TextColor3 = Color3.fromRGB(220,220,220)
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Close button
+local closeBtn = Instance.new("TextButton", titleBar)
+closeBtn.Size = UDim2.fromOffset(36, 26)
+closeBtn.Position = UDim2.new(1, -44, 0, 6)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 16
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.BackgroundColor3 = Color3.fromRGB(190, 40, 40)
+closeBtn.BorderSizePixel = 0
+local closeCorner = Instance.new("UICorner", closeBtn)
+closeCorner.CornerRadius = UDim.new(0,6)
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+-- Small subtitle (right side)
+local subtitle = Instance.new("TextLabel", titleBar)
+subtitle.Size = UDim2.new(0, 88, 1, 0)
+subtitle.Position = UDim2.new(1, -144, 0, 0)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Made by Siva"
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextSize = 12
+subtitle.TextColor3 = Color3.fromRGB(160,160,160)
+subtitle.TextXAlignment = Enum.TextXAlignment.Right
+
+-- Input area
+local inputBox = Instance.new("TextBox", window)
+inputBox.Size = UDim2.fromOffset(WINDOW_W - PADDING*2 - 120, 34)
+inputBox.Position = UDim2.fromOffset(PADDING, 52)
+inputBox.PlaceholderText = "Enter private server link..."
+inputBox.Font = Enum.Font.Code
+inputBox.TextSize = 14
+inputBox.ClearTextOnFocus = false
+inputBox.BackgroundColor3 = Color3.fromRGB(26,26,26)
+inputBox.TextColor3 = Color3.fromRGB(220,220,220)
+inputBox.BorderSizePixel = 0
+local inputCorner = Instance.new("UICorner", inputBox); inputCorner.CornerRadius = UDim.new(0,6)
+inputBox.TextXAlignment = Enum.TextXAlignment.Left
+
+local submitBtn = Instance.new("TextButton", window)
+submitBtn.Size = UDim2.fromOffset(108, 34)
+submitBtn.Position = UDim2.fromOffset(WINDOW_W - PADDING - 108, 52)
+submitBtn.Text = "SUBMIT PS"
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 14
+submitBtn.TextColor3 = Color3.fromRGB(255,255,255)
+submitBtn.BackgroundColor3 = Color3.fromRGB(56, 120, 255)
+submitBtn.BorderSizePixel = 0
+local submitCorner = Instance.new("UICorner", submitBtn); submitCorner.CornerRadius = UDim.new(0,6)
+
+-- Terminal area (scrolling)
+local termArea = Instance.new("Frame", window)
+termArea.Size = UDim2.fromOffset(WINDOW_W - PADDING*2, WINDOW_H - 120)
+termArea.Position = UDim2.fromOffset(PADDING, 100)
+termArea.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+termArea.BorderSizePixel = 0
+local termCorner = Instance.new("UICorner", termArea); termCorner.CornerRadius = UDim.new(0,6)
+
+local scroll = Instance.new("ScrollingFrame", termArea)
+scroll.Size = UDim2.fromScale(1, 1)
+scroll.Position = UDim2.new(0, 0, 0, 0)
+scroll.BackgroundTransparency = 1
+scroll.ScrollBarThickness = 6
+scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+scroll.CanvasSize = UDim2.new(0,0,0,0)
+scroll.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+
+local listLayout = Instance.new("UIListLayout", scroll)
+listLayout.Padding = UDim.new(0, 6)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- A static hidden template for lines
+local template = Instance.new("TextLabel")
+template.Size = UDim2.new(1, -12, 0, 18)
+template.BackgroundTransparency = 1
+template.TextXAlignment = Enum.TextXAlignment.Left
+template.Font = Enum.Font.Code
+template.TextSize = 14
+template.RichText = true
+template.TextColor3 = Color3.fromRGB(200,200,200)
+template.Text = ""
+template.Visible = false
+template.Parent = scroll
+
+-- blinking cursor element (keeps at bottom)
+local cursor = Instance.new("TextLabel", termArea)
+cursor.Size = UDim2.fromOffset(10, 18)
+cursor.Position = UDim2.new(0, 8, 1, -22)
+cursor.BackgroundTransparency = 1
+cursor.Font = Enum.Font.Code
+cursor.TextSize = 14
+cursor.Text = "█"
+cursor.TextColor3 = Color3.fromRGB(0, 200, 0)
+cursor.TextXAlignment = Enum.TextXAlignment.Left
+cursor.TextYAlignment = Enum.TextYAlignment.Top
+cursor.Visible = false
+
+-- Helper: current time string [HH:MM:SS]
+local function nowTime()
+    local t = os.date("*t")
+    return string.format("%02d:%02d:%02d", t.hour, t.min, t.sec)
+end
+
+-- Add a line with typing effect (fast)
+local function typeLine(message, colorHex, speed)
+    -- message: plain text (we'll wrap with <b> and color)
+    local lbl = template:Clone()
+    lbl.Visible = true
+    lbl.Parent = scroll
+    lbl.Text = "" -- build up
+    local wrapped = ("<font color='%s'><b>[%s] > %s</b></font>"):format(colorHex, nowTime(), message)
+    -- typing effect: reveal characters
+    local len = #wrapped
+    -- reveal by small chunks to keep RichText tags intact: show whole string instantly but simulate typing on plain message
+    -- safer approach: type the message portion while keeping header and color tags
+    -- extract prefix pattern "<font color='...'><b>[" .. time .. "] > "
+    local prefix = ("<font color='%s'><b>[%s] > "):format(colorHex, nowTime())
+    local suffix = "</b></font>"
+    local msgOnly = message
+    -- set initial
+    lbl.Text = prefix .. "</b></font>" -- show header immediately (closing so it displays header)
+    -- Actually we'll animate by gradually appending colored bold message after the header
+    local displayed = ""
+    for i = 1, #msgOnly do
+        displayed = displayed .. msgOnly:sub(i, i)
+        lbl.Text = prefix .. displayed .. suffix
+        -- scroll to bottom
+        RunService.Heartbeat:Wait()
+        scroll.CanvasPosition = Vector2.new(0, scroll.AbsoluteCanvasSize.Y)
+        task.wait(speed)
+    end
+    -- ensure final exact (with bold)
+    lbl.Text = prefix .. msgOnly .. suffix
+    RunService.Heartbeat:Wait()
+    scroll.CanvasPosition = Vector2.new(0, scroll.AbsoluteCanvasSize.Y)
+    return lbl
+end
+
+-- Faster helper to add already-complete lines (no per-char)
+local function addLineInstant(message, colorHex)
+    local lbl = template:Clone()
+    lbl.Visible = true
+    lbl.Parent = scroll
+    lbl.Text = ("<font color='%s'><b>[%s] > %s</b></font>"):format(colorHex, nowTime(), message)
+    RunService.Heartbeat:Wait()
+    scroll.CanvasPosition = Vector2.new(0, scroll.AbsoluteCanvasSize.Y)
+    return lbl
+end
+
+-- Spinner helper (returns a TextLabel updating with spinner)
+local spinners = { "⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧" }
+local function spinnerLine(baseText, colorHex, duration)
+    local lbl = template:Clone()
+    lbl.Visible = true
+    lbl.Parent = scroll
+    local start = tick()
+    local idx = 1
+    while tick() - start < duration do
+        lbl.Text = ("<font color='%s'><b>[%s] > %s %s</b></font>"):format(colorHex, nowTime(), baseText, spinners[idx])
+        idx = idx % #spinners + 1
+        RunService.Heartbeat:Wait()
+        scroll.CanvasPosition = Vector2.new(0, scroll.AbsoluteCanvasSize.Y)
+        task.wait(0.10)
+    end
+    return lbl
+end
+
+-- Terminal behavior per your request:
+--  - for first 10s: ONLY prints the yellow "sending ..." lines (simulate spinner + short message)
+--  - after 10s: print mix of green "sent successfully!" and occasional red "sent failed!"
+
+local SENDING_DURATION = 10 -- seconds of sending-only
+local TOTAL_AFTER = 20      -- seconds of post-sending messages
+local SEND_INTERVAL = 0.28  -- how often to print sending lines
+local POST_INTERVAL = 0.45  -- how often to print post lines
+local SUCCESS_CHANCE = 0.78 -- probability for success message
+
+local running = false
+
+-- Draggable logic
+do
+    local dragging, dragStart, startPos
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = window.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- Main submit behavior
+submitBtn.MouseButton1Click:Connect(function()
+    if running then
+        addLineInstant("Process already running. Please wait...", "#FFAA00")
+        return
+    end
+
+    local link = tostring(inputBox.Text or "")
+    if link == "" then
+        addLineInstant("Error: No private server link provided", "#FF4444")
+        return
+    end
+
+    running = true
+    -- start header
+    addLineInstant("Starting sending sequence...", "#99FF99")
+
+    -- Phase 1: sending-only (yellow), use spinner visual
+    local phaseStart = tick()
+    while tick() - phaseStart < SENDING_DURATION do
+        -- spinnerLine will create an animated line for a short burst; we do short bursts to avoid too many lines
+        local burst = spinnerLine("sending private server link to multiple roblox forums", "#FFFF66", math.min(0.9, SENDING_DURATION - (tick() - phaseStart)))
+        -- after a spinner burst, add a static yellow line (instant)
+        addLineInstant("sending private server link to multiple roblox forums", "#FFFF66")
+        task.wait(SEND_INTERVAL)
+    end
+
+    -- small separator
+    addLineInstant("---- sending complete. Receiving results... ----", "#AAAAAA")
+    -- Phase 2: results for TOTAL_AFTER seconds
+    local afterStart = tick()
+    while tick() - afterStart < TOTAL_AFTER do
+        local r = math.random()
+        if r < SUCCESS_CHANCE then
+            -- success: green, type a short message with slight typing
+            typeLine("sent successfully!", "#66FF88", 0.01)
+        else
+            -- failure: red, instant
+            typeLine("sent failed", "#FF6A6A", 0.012)
+        end
+        task.wait(POST_INTERVAL)
+    end
+
+    addLineInstant("Process finished. All operations complete.", "#99FF99")
+    running = false
+end)
+
+-- initial welcome lines
+addLineInstant("PS Terminal ready. Enter a private server link then press SUBMIT PS", "#CCCCCC")
+addLineInstant("Note: Visual simulation only — nothing is actually sent.", "#999999")

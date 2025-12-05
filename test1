@@ -1,0 +1,87 @@
+--// SIMPLE GUI – ONLY VISUAL, DOES NOT SEND ANYTHING
+
+if game.CoreGui:FindFirstChild("PSLinkGUI") then
+    game.CoreGui.PSLinkGUI:Destroy()
+end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "PSLinkGUI"
+gui.Parent = game.CoreGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 350, 0, 200)
+frame.Position = UDim2.new(0.5, -175, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 8)
+
+local title = Instance.new("TextLabel")
+title.Text = "Private Server Sender"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Parent = frame
+
+local box = Instance.new("TextBox")
+box.PlaceholderText = "Enter your private server link..."
+box.Size = UDim2.new(1, -20, 0, 35)
+box.Position = UDim2.new(0, 10, 0, 40)
+box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+box.TextColor3 = Color3.fromRGB(255, 255, 255)
+box.Font = Enum.Font.Gotham
+box.TextSize = 14
+box.Parent = frame
+Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
+
+local submit = Instance.new("TextButton")
+submit.Text = "Submit PS"
+submit.Size = UDim2.new(1, -20, 0, 35)
+submit.Position = UDim2.new(0, 10, 0, 85)
+submit.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+submit.TextColor3 = Color3.fromRGB(255, 255, 255)
+submit.Font = Enum.Font.GothamBold
+submit.TextSize = 16
+submit.Parent = frame
+Instance.new("UICorner", submit).CornerRadius = UDim.new(0, 6)
+
+local output = Instance.new("TextLabel")
+output.Text = ""
+output.Size = UDim2.new(1, -20, 0, 50)
+output.Position = UDim2.new(0, 10, 0, 130)
+output.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+output.TextColor3 = Color3.fromRGB(255, 255, 255)
+output.Font = Enum.Font.Gotham
+output.TextSize = 14
+output.TextWrapped = true
+output.Parent = frame
+Instance.new("UICorner", output).CornerRadius = UDim.new(0, 6)
+
+submit.MouseButton1Click:Connect(function()
+    if box.Text == "" then
+        output.Text = "Please enter a private server link!"
+        output.TextColor3 = Color3.fromRGB(255, 0, 0)
+        return
+    end
+
+    -- Step 1: sending message
+    output.Text = "sending your private server link to multiple roblox forums..."
+    output.TextColor3 = Color3.fromRGB(0, 255, 0)
+
+    task.wait(math.random(1, 2))
+
+    -- Step 2: random success/fail
+    local chance = math.random(1, 10) -- fail rarely
+
+    if chance == 1 then
+        output.Text = "sent failed"
+        output.TextColor3 = Color3.fromRGB(255, 0, 0)
+    else
+        output.Text = "sent successfully"
+        output.TextColor3 = Color3.fromRGB(0, 255, 0)
+    end
+end)

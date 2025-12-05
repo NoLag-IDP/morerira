@@ -1,0 +1,161 @@
+--// GUI SETUP
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui", playerGui)
+gui.Name = "PS_Sender_GUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 420, 0, 320)
+frame.Position = UDim2.new(0.5, -210, 0.5, -160)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 10)
+
+-- TITLE BAR
+local titleBar = Instance.new("Frame", frame)
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+titleBar.BorderSizePixel = 0
+
+local title = Instance.new("TextLabel", titleBar)
+title.Size = UDim2.new(1, -80, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Private Server Sender"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- CLOSE BUTTON
+local closeBtn = Instance.new("TextButton", titleBar)
+closeBtn.Size = UDim2.new(0, 35, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0, 5)
+closeBtn.Text = "X"
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+-- MINIMIZE BUTTON
+local minimized = false
+local fullSize = frame.Size
+local minimizeBtn = Instance.new("TextButton", titleBar)
+minimizeBtn.Size = UDim2.new(0, 35, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -80, 0, 5)
+minimizeBtn.Text = "–"
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextSize = 18
+Instance.new("UICorner", minimizeBtn).CornerRadius = UDim.new(0, 6)
+
+minimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        -- Collapse everything except title bar
+        frame.Size = UDim2.new(frame.Size.X.Scale, frame.Size.X.Offset, 0, 40)
+        for _, child in pairs(frame:GetChildren()) do
+            if child ~= titleBar then
+                child.Visible = false
+            end
+        end
+    else
+        -- Restore full GUI
+        frame.Size = fullSize
+        for _, child in pairs(frame:GetChildren()) do
+            if child ~= titleBar then
+                child.Visible = true
+            end
+        end
+    end
+end)
+
+-- INPUT BOX
+local psInput = Instance.new("TextBox", frame)
+psInput.Size = UDim2.new(0, 400, 0, 40)
+psInput.Position = UDim2.new(0, 10, 0, 50)
+psInput.PlaceholderText = "Enter Private Server Link"
+psInput.Text = ""
+psInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+psInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+psInput.Font = Enum.Font.GothamBold
+psInput.TextSize = 16
+Instance.new("UICorner", psInput).CornerRadius = UDim.new(0, 6)
+
+-- SUBMIT BUTTON
+local submitBtn = Instance.new("TextButton", frame)
+submitBtn.Size = UDim2.new(0, 400, 0, 40)
+submitBtn.Position = UDim2.new(0, 10, 0, 100)
+submitBtn.Text = "SUBMIT PRIVATE SERVER LINK"
+submitBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 255)
+submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 16
+Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0, 6)
+
+-- OUTPUT BOX
+local outputBox = Instance.new("ScrollingFrame", frame)
+outputBox.Size = UDim2.new(0, 400, 0, 150)
+outputBox.Position = UDim2.new(0, 10, 0, 150)
+outputBox.CanvasSize = UDim2.new(0, 0, 10, 0)
+outputBox.ScrollBarThickness = 6
+outputBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Instance.new("UICorner", outputBox).CornerRadius = UDim.new(0, 6)
+
+local listLayout = Instance.new("UIListLayout", outputBox)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 2)
+
+-- ADD LINE FUNCTION WITH TEXT WRAP
+local function addLine(text, color)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -10, 0, 18)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.TextWrapped = true
+    lbl.TextSize = 14
+    lbl.Text = text
+    lbl.TextColor3 = color
+    lbl.Parent = outputBox
+
+    task.wait()
+    outputBox.CanvasSize = UDim2.new(0,0,0, listLayout.AbsoluteContentSize.Y)
+    outputBox.CanvasPosition = Vector2.new(0, math.max(0, listLayout.AbsoluteContentSize.Y - outputBox.AbsoluteSize.Y))
+end
+
+-- MAIN LOGIC
+submitBtn.MouseButton1Click:Connect(function()
+    if psInput.Text == "" then
+        addLine("Error: No private server link provided", Color3.fromRGB(255, 0, 0))
+        return
+    end
+
+    local startTime = tick()
+    while tick() - startTime < 10 do
+        local timestamp = os.date("%H:%M:%S")
+        addLine("["..timestamp.."] sending private server link to multiple roblox forums...", Color3.fromRGB(255, 255, 0))
+        task.wait(0.25)
+    end
+
+    local endTime = tick()
+    while tick() - endTime < 20 do
+        task.wait(0.5)
+        local timestamp = os.date("%H:%M:%S")
+        local roll = math.random(1, 10)
+        if roll <= 7 then
+            addLine("["..timestamp.."] sent successfully!", Color3.fromRGB(0, 255, 0))
+        else
+            addLine("["..timestamp.."] sent failed!", Color3.fromRGB(255, 0, 0))
+        end
+    end
+
+    local timestamp = os.date("%H:%M:%S")
+    addLine("["..timestamp.."] Your private server link has been sent successfully! Wait for the victims to join!", Color3.fromRGB(0, 255, 0))
+end)

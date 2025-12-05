@@ -1,0 +1,112 @@
+--// GUI SETUP
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui", playerGui)
+gui.Name = "PS_Sender_GUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 420, 0, 320)
+frame.Position = UDim2.new(0.5, -210, 0.5, -160)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 10)
+
+-- X BUTTON
+local closeBtn = Instance.new("TextButton", frame)
+closeBtn.Size = UDim2.new(0, 35, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0, 5)
+closeBtn.Text = "X"
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- INPUT BOX
+local psInput = Instance.new("TextBox", frame)
+psInput.Size = UDim2.new(0, 400, 0, 40)
+psInput.Position = UDim2.new(0, 10, 0, 50)
+psInput.PlaceholderText = "Enter Private Server Link"
+psInput.Text = ""
+psInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+psInput.TextColor3 = Color3.fromRGB(255,255,255)
+psInput.Font = Enum.Font.GothamBold
+psInput.TextSize = 16
+Instance.new("UICorner", psInput).CornerRadius = UDim.new(0, 6)
+
+-- SUBMIT BUTTON
+local submitBtn = Instance.new("TextButton", frame)
+submitBtn.Size = UDim2.new(0, 400, 0, 40)
+submitBtn.Position = UDim2.new(0, 10, 0, 100)
+submitBtn.Text = "SUBMIT PRIVATE SERVER LINK"
+submitBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 255)
+submitBtn.TextColor3 = Color3.fromRGB(255,255,255)
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 16
+Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0, 6)
+
+-- OUTPUT BOX
+local outputBox = Instance.new("ScrollingFrame", frame)
+outputBox.Size = UDim2.new(0, 400, 0, 150)
+outputBox.Position = UDim2.new(0, 10, 0, 150)
+outputBox.CanvasSize = UDim2.new(0, 0, 10, 0)
+outputBox.ScrollBarThickness = 6
+outputBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Instance.new("UICorner", outputBox).CornerRadius = UDim.new(0, 6)
+
+local listLayout = Instance.new("UIListLayout", outputBox)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- ADD LINE FUNCTION
+local function addLine(text, color)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -10, 0, 20)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.TextSize = 14
+    lbl.Text = text
+    lbl.TextColor3 = color
+    lbl.Parent = outputBox
+
+    task.wait()
+    outputBox.CanvasPosition = Vector2.new(0, outputBox.CanvasSize.Y.Offset + 2000)
+end
+
+
+-- MAIN LOGIC
+submitBtn.MouseButton1Click:Connect(function()
+    if psInput.Text == "" then
+        addLine("Error: No private server link provided", Color3.fromRGB(255, 0, 0))
+        return
+    end
+
+    -- 10 seconds of "sending"
+    local startTime = tick()
+    while tick() - startTime < 10 do
+        addLine("sending private server link to multiple roblox forums...", Color3.fromRGB(255, 255, 0))
+        task.wait(0.25)
+    end
+
+    -- After 10 sec → success/fail messages for 20 seconds
+    local endTime = tick()
+    while tick() - endTime < 20 do
+        task.wait(0.5)
+
+        local roll = math.random(1, 10)
+
+        if roll <= 7 then
+            addLine("sent successfully!", Color3.fromRGB(0, 255, 0))
+        else
+            addLine("sent failed!", Color3.fromRGB(255, 0, 0))
+        end
+    end
+end)

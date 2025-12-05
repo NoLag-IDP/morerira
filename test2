@@ -1,0 +1,96 @@
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 380, 0, 260)
+Main.Position = UDim2.new(0.5, -190, 0.5, -130)
+Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Main.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner", Main)
+UICorner.CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel")
+Title.Parent = Main
+Title.Size = UDim2.new(1, 0, 0, 34)
+Title.BackgroundTransparency = 1
+Title.Text = "Private Server Sender"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.TextColor3 = Color3.new(1,1,1)
+
+local InputBox = Instance.new("TextBox")
+InputBox.PlaceholderText = "Enter private server link here..."
+InputBox.Size = UDim2.new(1, -20, 0, 32)
+InputBox.Position = UDim2.new(0, 10, 0, 50)
+InputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+InputBox.TextColor3 = Color3.new(1,1,1)
+InputBox.Font = Enum.Font.Gotham
+InputBox.TextSize = 14
+InputBox.Parent = Main
+Instance.new("UICorner", InputBox).CornerRadius = UDim.new(0,6)
+
+local Submit = Instance.new("TextButton")
+Submit.Parent = Main
+Submit.Size = UDim2.new(0, 120, 0, 32)
+Submit.Position = UDim2.new(0, 10, 0, 90)
+Submit.BackgroundColor3 = Color3.fromRGB(120, 50, 255)
+Submit.Text = "Submit PS"
+Submit.TextColor3 = Color3.new(1,1,1)
+Submit.Font = Enum.Font.GothamBold
+Submit.TextSize = 14
+Instance.new("UICorner", Submit).CornerRadius = UDim.new(0, 6)
+
+-- OUTPUT WINDOW
+local Output = Instance.new("TextLabel")
+Output.Parent = Main
+Output.Size = UDim2.new(1, -20, 0, 120)
+Output.Position = UDim2.new(0, 10, 0, 130)
+Output.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Output.Text = ""
+Output.TextXAlignment = Enum.TextXAlignment.Left
+Output.TextYAlignment = Enum.TextYAlignment.Top
+Output.TextWrapped = true
+Output.TextSize = 14
+Output.Font = Enum.Font.Code
+Output.TextColor3 = Color3.new(1,1,1)
+Output.RichText = true
+Instance.new("UICorner", Output).CornerRadius = UDim.new(0, 8)
+
+-- FUNCTION TO ADD LINES
+local function append(text)
+	Output.Text = Output.Text .. text .. "\n"
+end
+
+-- ACTION ON SUBMIT
+Submit.MouseButton1Click:Connect(function()
+
+	if InputBox.Text == "" then
+		append("<font color='#FF4444'>⚠ Please enter a private server link first.</font>")
+		return
+	end
+
+	Output.Text = ""
+	append("<font color='#44FF44'>Starting process...</font>")
+
+	local RunService = game:GetService("RunService")
+	local startTime = tick()
+
+	while tick() - startTime < 30 do
+		task.wait(0.4)
+
+		local chance = math.random(1, 12)
+
+		if chance <= 8 then
+			append("sending private server link to multiple roblox forums")
+		elseif chance <= 11 then
+			append("<font color='#44FF44'>sent successfully</font>")
+		else
+			append("<font color='#FF4444'>sent failed</font>")
+		end
+	end
+
+	append("<font color='#44FF44'>✔ Finished.</font>")
+end)

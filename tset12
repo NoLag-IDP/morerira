@@ -1,0 +1,144 @@
+--// GUI SETUP
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui", playerGui)
+gui.Name = "PS_Sender_GUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 420, 0, 320)
+frame.Position = UDim2.new(0.5, -210, 0.5, -160)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+-- HIDE / SHOW BUTTON
+local toggleBtn = Instance.new("TextButton", gui)
+toggleBtn.Size = UDim2.new(0, 120, 0, 35)
+toggleBtn.Position = UDim2.new(0.5, -60, 0, 10)
+toggleBtn.Text = "HIDE PANEL"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 14
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 6)
+
+local isHidden = false
+toggleBtn.MouseButton1Click:Connect(function()
+    isHidden = not isHidden
+    frame.Visible = not isHidden
+    toggleBtn.Text = isHidden and "SHOW PANEL" or "HIDE PANEL"
+end)
+
+-- INPUT BOX
+local psInput = Instance.new("TextBox", frame)
+psInput.Size = UDim2.new(0, 400, 0, 40)
+psInput.Position = UDim2.new(0, 10, 0, 50)
+psInput.PlaceholderText = "Enter Private Server Link"
+psInput.Text = ""
+psInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+psInput.TextColor3 = Color3.fromRGB(255,255,255)
+psInput.Font = Enum.Font.GothamBold
+psInput.TextSize = 16
+Instance.new("UICorner", psInput).CornerRadius = UDim.new(0, 6)
+
+-- SUBMIT BUTTON
+local submitBtn = Instance.new("TextButton", frame)
+submitBtn.Size = UDim2.new(0, 400, 0, 40)
+submitBtn.Position = UDim2.new(0, 10, 0, 100)
+submitBtn.Text = "SUBMIT PRIVATE SERVER LINK"
+submitBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 255)
+submitBtn.TextColor3 = Color3.fromRGB(255,255,255)
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 16
+Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0, 6)
+
+-- OUTPUT BOX
+local outputBox = Instance.new("ScrollingFrame", frame)
+outputBox.Size = UDim2.new(0, 400, 0, 150)
+outputBox.Position = UDim2.new(0, 10, 0, 150)
+outputBox.CanvasSize = UDim2.new(0, 0, 0, 0) -- updated dynamically
+outputBox.ScrollBarThickness = 6
+outputBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Instance.new("UICorner", outputBox).CornerRadius = UDim.new(0, 6)
+
+local layout = Instance.new("UIListLayout", outputBox)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0, 2)
+
+-- FUNCTION TO ADD LINES + AUTO SCROLL
+local function timestamp()
+    local t = os.date("*t")
+    return string.format("[%02d:%02d:%02d]", t.hour, t.min, t.sec)
+end
+
+local function addLine(text, color)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -10, 0, 18)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.TextSize = 14
+    lbl.RichText = true
+    lbl.TextColor3 = color
+    lbl.Text = "<b>" .. timestamp() .. " " .. text .. "</b>"
+    lbl.Parent = outputBox
+
+    -- Update CanvasSize to fit all children
+    local totalHeight = 0
+    for _, child in pairs(outputBox:GetChildren()) do
+        if child:IsA("TextLabel") then
+            totalHeight = totalHeight + child.AbsoluteSize.Y + layout.Padding.Offset
+        end
+    end
+    outputBox.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+    outputBox.CanvasPosition = Vector2.new(0, totalHeight) -- lock to last line
+end
+
+-- PREPARING MESSAGES
+local preparingMessages = {
+    "verifying server link...",
+    "checking validity...",
+    "preparing to send link...",
+    "connecting to roblox network...",
+    "sending link to roblox contacts...",
+    "sending link to players...",
+    "initializing broadcast system...",
+    "scanning for active roblox forums...",
+}
+
+-- MAIN LOGIC
+submitBtn.MouseButton1Click:Connect(function()
+    if psInput.Text == "" then
+        addLine("Error: No private server link provided", Color3.fromRGB(255, 0, 0))
+        return
+    end
+
+    -- RANDOM PREPARING MESSAGES
+    for i = 1, 20 do
+        addLine(preparingMessages[math.random(1, #preparingMessages)], Color3.fromRGB(255, 255, 0))
+        task.wait(0.05)
+    end
+
+    -- 10 SECONDS OF SENDING
+    local startTime = tick()
+    local failedCount = 0
+    while tick() - startTime < 10 do
+        addLine("sending private server link to multiple roblox forums...", Color3.fromRGB(255, 255, 0))
+        
+        -- Spread-out sent failed
+        if math.random(1, 15) == 1 and failedCount < 8 then
+            addLine("sent failed!", Color3.fromRGB(255, 0, 0))
+            failedCount = failedCount + 1
+        end
+        
+        task.wait(0.05)
+    end
+
+    -- FINAL OUTPUT
+    task.wait(0.2)
+    addLine("Your private server link has been sent successfully!", Color3.fromRGB(0, 255, 0))
+    task.wait(0.2)
+    addLine("Wait for the victims to join!", Color3.fromRGB(0, 255, 0))
+end)

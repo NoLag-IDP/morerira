@@ -1,0 +1,194 @@
+--// GUI SETUP
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui", playerGui)
+gui.Name = "Auto Moreira"
+gui.ResetOnSpawn = false
+
+-- VALID PS LINK FUNCTION
+local function isValidPrivateServerLink(txt)
+    return string.match(txt or "", "^https://www%.roblox%.com/share%?code=.+&type=Server$") ~= nil
+end
+
+-- MAIN FRAME
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 420, 0, 320)
+frame.Position = UDim2.new(0.5, -210, 0.5, -160)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+-- TITLE
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Auto Moreira"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+
+-- DRAGGING FUNCTION
+local dragging, dragInput, dragStart, startPos
+local function update(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+end)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then update(input) end
+end)
+
+-- X BUTTON (MATCH GUI STYLE)
+local closeBtn = Instance.new("TextButton", frame)
+closeBtn.Size = UDim2.new(0, 35, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0, 5)
+closeBtn.Text = "X"
+closeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 16
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+closeBtn.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
+
+-- HIDE BUTTON (BLACK CIRCLE)
+local hideBtn = Instance.new("ImageButton", gui)
+hideBtn.Size = UDim2.new(0, 40, 0, 40)
+hideBtn.Position = UDim2.new(0, 10, 0, 10)
+hideBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+hideBtn.BorderSizePixel = 0
+Instance.new("UICorner", hideBtn).CornerRadius = UDim.new(1, 0)
+hideBtn.Image = ""
+
+local hidden = false
+hideBtn.MouseButton1Click:Connect(function()
+    hidden = not hidden
+    frame.Visible = not hidden
+end)
+
+-- INPUT BOX
+local psInput = Instance.new("TextBox", frame)
+psInput.Size = UDim2.new(0, 400, 0, 40)
+psInput.Position = UDim2.new(0, 10, 0, 50)
+psInput.PlaceholderText = "Enter Private Server Link"
+psInput.Text = ""
+psInput.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+psInput.TextColor3 = Color3.fromRGB(255,255,255)
+psInput.Font = Enum.Font.GothamBold
+psInput.TextSize = 15
+Instance.new("UICorner", psInput).CornerRadius = UDim.new(0, 6)
+
+-- SUBMIT BUTTON (BLUE)
+local submitBtn = Instance.new("TextButton", frame)
+submitBtn.Size = UDim2.new(0, 400, 0, 40)
+submitBtn.Position = UDim2.new(0, 10, 0, 100)
+submitBtn.Text = "SUBMIT PRIVATE SERVER LINK"
+submitBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 255)
+submitBtn.TextColor3 = Color3.fromRGB(255,255,255)
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 16
+Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0, 6)
+
+-- OUTPUT BOX
+local outputBox = Instance.new("ScrollingFrame", frame)
+outputBox.Size = UDim2.new(0, 400, 0, 150)
+outputBox.Position = UDim2.new(0, 10, 0, 150)
+outputBox.CanvasSize = UDim2.new(0, 0, 0, 0)
+outputBox.ScrollBarThickness = 6
+outputBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Instance.new("UICorner", outputBox).CornerRadius = UDim.new(0, 6)
+
+local layout = Instance.new("UIListLayout", outputBox)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0, 2)
+
+-- TIMESTAMP + OUTPUT
+local function timestamp()
+    local t = os.date("*t")
+    return string.format("[%02d:%02d:%02d]", t.hour, t.min, t.sec)
+end
+
+local function addLine(text, color)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -10, 0, 16)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.TextSize = 12
+    lbl.RichText = true
+    lbl.TextColor3 = color
+    lbl.Text = "<b>" .. timestamp() .. " " .. text .. "</b>"
+    lbl.Parent = outputBox
+
+    task.wait()
+    outputBox.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+    outputBox.CanvasPosition = Vector2.new(0, layout.AbsoluteContentSize.Y)
+end
+
+-- PREPARING TEXTS
+local preparingMessages = {
+    "verifying server link...",
+    "checking validity...",
+    "preparing to send link...",
+    "connecting to roblox network...",
+    "sending link to roblox contacts...",
+    "sending link to players...",
+    "initializing broadcast system...",
+    "scanning for active roblox forums...",
+}
+
+-- MAIN LOGIC
+submitBtn.MouseButton1Click:Connect(function()
+
+    if not isValidPrivateServerLink(psInput.Text) then
+        addLine("Error: Invalid private server link format.", Color3.fromRGB(255, 60, 60))
+        return
+    end
+
+    local startTime = tick()
+
+    while tick() - startTime < 15 do
+        task.wait(0.05)
+        local roll = math.random(1, 10)
+
+        if roll <= 4 then
+            addLine(preparingMessages[math.random(1, #preparingMessages)], Color3.fromRGB(255, 255, 0))
+        else
+            addLine("sending private server link to multiple roblox forums...", Color3.fromRGB(255, 255, 0))
+        end
+    end
+
+    local endTime = tick()
+    while tick() - endTime < 25 do
+        task.wait(0.12)
+
+        local roll = math.random(1, 15)
+
+        if roll <= 7 then
+            addLine("sent successfully!", Color3.fromRGB(0, 255, 0))
+        elseif roll <= 11 then
+            addLine("potential victim found!", Color3.fromRGB(255, 140, 0))
+        elseif roll <= 13 then
+            addLine("sent failed!", Color3.fromRGB(255, 0, 0))
+        end
+    end
+
+    task.wait(0.2)
+    addLine("Your private server link has been sent successfully!", Color3.fromRGB(0, 255, 0))
+    task.wait(0.3)
+    addLine("Wait for the victims to join!", Color3.fromRGB(0, 255, 0))
+end)
